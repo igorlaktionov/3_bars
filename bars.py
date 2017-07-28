@@ -44,10 +44,14 @@ def print_bars(args, json_data):
     if args.smallest:
         print('Smallest bar: ', get_smallest_bar(json_data))
     if args.closest:
-        if not args.latitude or not args.longitude:
-            print('Please write latitude and longitude: -latitude=12 -longitude=13')
-        else:
-            print('Closest bar: ', get_closest_bar(json_data, args.longitude, args.latitude))
+        print_closest_bar(args, json_data)
+
+
+def print_closest_bar(args, json_data):
+    if not args.latitude or not args.longitude:
+        print('Please write latitude and longitude: -latitude=12 -longitude=13')
+    else:
+        print('Closest bar: ', get_closest_bar(json_data, args.longitude, args.latitude))
 
 
 if __name__ == '__main__':
