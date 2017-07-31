@@ -4,8 +4,18 @@ import math
 
 
 def load_data(file_path):
-    with open(file_path, 'r') as handler:
-        return json.load(handler)
+    try:
+        with open(file_path, 'r') as handler:
+            return json.load(handler)
+    except OSError as error:
+        print(error)
+        return None
+    except UnicodeDecodeError as error:
+        print("Please use the encoding UTF8: %s" % error)
+        return None
+    except ValueError as error:
+        print('Invalid json: %s' % error)
+        return None
 
 
 def get_biggest_bar(json_data):
@@ -39,30 +49,22 @@ def parser_input_data():
 
 
 def print_bars(args, json_data):
-    if args.biggest:
-        print('Biggest bar: ', get_biggest_bar(json_data))
-    if args.smallest:
-        print('Smallest bar: ', get_smallest_bar(json_data))
-    if args.closest:
-        print_closest_bar(args, json_data)
-
-
-def print_closest_bar(args, json_data):
-    if not args.latitude or not args.longitude:
-        print('Please write latitude and longitude: -latitude=12 -longitude=13')
-    else:
-        print('Closest bar: ', get_closest_bar(json_data, args.longitude, args.latitude))
+    try:
+        if args.biggest:
+            print('Biggest bar: ', get_biggest_bar(json_data))
+        if args.smallest:
+            print('Smallest bar: ', get_smallest_bar(json_data))
+        if args.closest:
+            if not args.latitude or not args.longitude:
+                print('Please write latitude and longitude: -latitude=12 -longitude=13')
+            else:
+                print('Closest bar: ', get_closest_bar(json_data, args.longitude, args.latitude))
+    except KeyError as error:
+        print('Invalid json key: %s' % error)
 
 
 if __name__ == '__main__':
-    try:
-        args = parser_input_data()
-        print_bars(args, load_data(args.file_path))
-    except OSError as error:
-        print(error)
-    except UnicodeDecodeError as error:
-        print("Please use the encoding UTF8: %s" % error)
-    except ValueError as error:
-        print('Invalid json: %s' % error)
-    except KeyError as error:
-        print('Invalid json key: %s' % error)
+    args = parser_input_data()
+    json_data = load_data(args.file_path)
+    if json_data:
+        print_bars(args, json_data)
