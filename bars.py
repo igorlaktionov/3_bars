@@ -4,28 +4,28 @@ import math
 
 
 def load_data(file_path):
+    json_data = None
     try:
         with open(file_path, 'r') as handler:
-            return json.load(handler)
+            json_data = json.load(handler)
     except OSError as error:
         print(error)
-        return None
     except UnicodeDecodeError as error:
         print("Please use the encoding UTF8: %s" % error)
-        return None
     except ValueError as error:
         print('Invalid json: %s' % error)
-        return None
+    finally:
+        return json_data
 
 
 def get_biggest_bar(json_data):
     biggest_bar = max(json_data, key=lambda item: item['SeatsCount'])
-    return biggest_bar['Name']
+    return 'Biggest bar: %s' % biggest_bar['Name']
 
 
 def get_smallest_bar(json_data):
-    biggest_bar = min(json_data, key=lambda item: item['SeatsCount'])
-    return biggest_bar['Name']
+    smallest_bar = min(json_data, key=lambda item: item['SeatsCount'])
+    return 'Smallest bar: %s' % smallest_bar['Name']
 
 
 def get_distance(bar_coordinates, your_coordinates):
@@ -34,7 +34,7 @@ def get_distance(bar_coordinates, your_coordinates):
 
 def get_closest_bar(json_data, longitude, latitude):
     closest_bar = min(json_data, key=lambda item: get_distance(item['geoData']['coordinates'], (longitude, latitude)))
-    return closest_bar['Name']
+    return 'Closest bar: %s' % closest_bar['Name']
 
 
 def parser_input_data():
@@ -48,27 +48,37 @@ def parser_input_data():
     return parser.parse_args()
 
 
-def print_bars(args, json_data):
+def get_bars(json_data, args):
+    bars = []
     try:
         if args.biggest:
-            print('Biggest bar: ', get_biggest_bar(json_data))
+            bars.append(get_biggest_bar(json_data))
         if args.smallest:
-            print('Smallest bar: ', get_smallest_bar(json_data))
+            bars.append(get_smallest_bar(json_data))
         if args.closest:
-            print_closest_bar(args, json_data)
+            bars.append(get_closest_bar(json_data, args.longitude, args.latitude))
     except KeyError as error:
         print('Invalid json key: %s' % error)
+    finally:
+        return bars
 
 
-def print_closest_bar(args, json_data):
-    if not args.latitude or not args.longitude:
+def print_bars(bars):
+    if bars:
+        for bar in bars:
+            print(bar)
+
+
+def validate_arguments(args):
+    if args.closest and (not args.longitude or not args.latitude):
         print('Please write latitude and longitude: -latitude=12 -longitude=13')
+        return False
     else:
-        print('Closest bar: ', get_closest_bar(json_data, args.longitude, args.latitude))
+        return True
 
 
 if __name__ == '__main__':
     args = parser_input_data()
     json_data = load_data(args.file_path)
-    if json_data:
-        print_bars(args, json_data)
+    if json_data and validate_arguments(args):
+        print_bars(get_bars(json_data, args))
